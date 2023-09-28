@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Satellite-FY4B" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/mcs_tracker/mcs_tracker" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/mcs_tracker/mcs_tracker_orgin/mcs_tracker" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/rainyseasonmonitor" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/southchinarainymonitor" vcs="Git" />
+  </component>
+</project>

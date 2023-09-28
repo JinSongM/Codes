@@ -1,0 +1,71 @@
+import glob
+import os.path
+import sys
+from datetime import datetime, timedelta
+from verify.plot_met import plot_wind_speed, plot_wind
+from multiprocessing import Pool
+
+args = sys.argv
+__CONFIG = {
+    "CMA_GFS": {
+        "folder": "/data/cpvs/DataBase/MOD/CMA_GFS/t2m/{report_time:%Y}/{report_time:%Y%m%d%H}",
+        "interval": 12
+    },
+    "ECMWF": {
+        "folder": "/data/cpvs/DataBase/MOD/ECMWF/t2m/{report_time:%Y}/{report_time:%Y%m%d%H}",
+        "interval": 12
+    },
+    "NCEP": {
+        "folder": "/data/cpvs/DataBase/MOD/NCEP/t2m/{report_time:%Y}/{report_time:%Y%m%d%H}",
+        "interval": 12
+    },
+    "CMA_MESO_3KM": {
+        "folder": "/data/cpvs/DataBase/MOD/CMA_MESO_3KM/t2m/{report_time:%Y}/{report_time:%Y%m%d%H}",
+        "his_count": 5,
+        "interval": 12
+    },
+    "CMA_TYM": {
+        "folder": "/data/cpvs/DataBase/MOD/CMA_TYM/t2m/{report_time:%Y}/{report_time:%Y%m%d%H}",
+        "interval": 12
+    }
+}
+
+
+def process_plot(report_time):
+    pool = Pool(processes=5)
+    _file_path = __CONFIG[args[1]]["folder"].format(report_time=report_time)
+    file_list = glob.glob(_file_path + "/*")
+    print(report_time)
+    if len(file_list) > 0:
+        for f in file_list:
+            cst = int(os.path.basename(f).split(".")[1])
+            if cst % 3 != 0 or cst > 72:
+                continue
+            #plot_wind_speed(args[1], report_time, cst)
+            pool.apply_async(plot_wind_speed, (args[1], report_time, cst))
+            pool.apply_async(plot_wind, (args[1], report_time, cst))
+
+    pool.close()
+    pool.join()
+
+
+def process():
+    report_time = datetime.now()
+    interval = __CONFIG[args[1]]["interval"]
+    report_time = report_time - timedelta(hours=report_time.hour % interval) + timedelta(hours=8)
+    his_count = 1
+    if "his_count" in __CONFIG[args[1]].keys():
+        his_count = __CONFIG[args[1]]["his_count"]
+    for idx in range(his_count):
+        process_plot(report_time)
+        report_time = report_time - timedelta(hours=interval)
+
+
+if __name__ == '__main__':
+    try:
+        process()
+    except BaseException as e:
+        print(e)
+
+    finally:
+        sys.exit(0)

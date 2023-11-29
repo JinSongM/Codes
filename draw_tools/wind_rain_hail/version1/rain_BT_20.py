@@ -2,7 +2,7 @@
 # @Time : 2023/8/28 10:26
 # @Author : 马劲松
 # @Email : mjs1263153117@163.com
-# @File : light_BT.py
+# @File : rain_BT_20.py
 # @Software: PyCharm
 import os, glob
 import sys, cv2
@@ -172,17 +172,18 @@ def get_fy4_file_channel(d_date: datetime):
         lon, lat = [west_lon, east_lon, M4000_resolution], [south_lat, north_lat, M4000_resolution]
         gtime = d_date.strftime('%Y-%m-%d-%H:%M')
         fy4b_channel = {
-            'BT09': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_09[::-1], np.ones((5, 5))), 'BT09', gtime),
-            'BT10': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_10[::-1], np.ones((5, 5))), 'BT10', gtime),
+            # 'BT09': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_09[::-1], np.ones((5, 5))), 'BT09', gtime),
+            # 'BT10': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_10[::-1], np.ones((5, 5))), 'BT10', gtime),
             'BT13': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_13[::-1], np.ones((5, 5))), 'BT13', gtime),
-            'BT14': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_14[::-1], np.ones((5, 5))), 'BT14', gtime),
+            # 'BT14': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_14[::-1], np.ones((5, 5))), 'BT14', gtime),
             'BTD14_13': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_14-fy4b_obj.tb_13)[::-1], np.ones((5, 5))), 'BTD14_13', gtime),
             'BTD09_13': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_09-fy4b_obj.tb_13)[::-1], np.ones((5, 5))), 'BTD09_13', gtime),
             'BTD09_10': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_09-fy4b_obj.tb_10)[::-1], np.ones((5, 5))), 'BTD09_10', gtime),
         }
         fy4b_obj_dict[time_temp.strftime('%Y%m%d%H%M')] = fy4b_channel
         return fy4b_obj_dict
-    except:
+    except Exception as e:
+        print(e)
         return None
 
 def get_TQ_DATA_file(d_date: datetime):
@@ -202,21 +203,44 @@ def get_TQ_DATA_file(d_date: datetime):
     except:
         return None
 
+def get_rain_file(d_date: datetime):
+    # 读取闪电数据
+    rain_dict = {}
+    time_temp = d_date
+    try:
+        filename = '{d_time:%Y%m%d}/{d_time:%Y%m%d%H%M}.000'
+        path = r"/data/2023sk/rain"
+        filepath = os.path.join(path, filename.format(d_time=d_date))
+        rain_sta = meb.read_stadata_from_micaps3(filepath)
+        print('读取强降水数据: ' + time_temp.strftime('%Y%m%d%H%M'))
+        rain_sta_filter = rain_sta[(rain_sta.data0 >= 20) & (rain_sta.data0 < 50)]
+        # rain_sta_filter = rain_sta[(rain_sta.data0 >= 50) & (rain_sta.data0 < 80)]
+        # rain_sta_filter = rain_sta[rain_sta.data0 >= 80]
+        if rain_sta_filter.empty:
+            return None
+        rain_dict[time_temp.strftime('%Y%m%d%H%M')] = rain_sta_filter
+        return rain_dict
+    except:
+        return None
+
 def get_channel_sta(time_list, outfile):
     BT09_list, BT10_list, BT13_list, BT14_list, BTD14_13_list, BTD09_13_list, BTD09_10_list = [], [], [], [], [], [], []
     for time_obs in time_list:
         try:
-            TQ_DATA_dict = get_TQ_DATA_file(time_obs)
-            if TQ_DATA_dict is None:
+            rain_dict = get_rain_file(time_obs)
+            if rain_dict is None:
+                print('--' * 40)
                 continue
-            fy4b_channels_dict = get_fy4_file_channel(time_obs)
+            time_utc = time_obs - timedelta(hours=8)
+            fy4b_channels_dict = get_fy4_file_channel(time_utc)
             if fy4b_channels_dict is None:
+                print('--' * 40)
                 continue
-            sta = TQ_DATA_dict.get(time_obs.strftime('%Y%m%d%H%M'))
-            grd_channels = fy4b_channels_dict.get(time_obs.strftime('%Y%m%d%H%M'))
+            sta = rain_dict.get(time_obs.strftime('%Y%m%d%H%M'))
+            grd_channels = fy4b_channels_dict.get(time_utc.strftime('%Y%m%d%H%M'))
             for key, value in grd_channels.items():
                 sta_channel = meb.interp_gs_nearest(value, sta)
-                meb.write_stadata_to_micaps3(sta_channel, save_path=outfile.format(d_time=time_obs, label=key), creat_dir=True, show=True)
+                # meb.write_stadata_to_micaps3(sta_channel, save_path=outfile.format(d_time=time_obs, label=key), creat_dir=True, show=True)
                 if key == 'BT09':
                     BT09_list.append(sta_channel[['time', 'lon', 'lat', key]])
                 elif key == 'BT10':
@@ -234,7 +258,8 @@ def get_channel_sta(time_list, outfile):
             print('##' * 40)
         except Exception as e:
             print(e)
-    return [BT09_list, BT10_list, BT13_list, BT14_list, BTD14_13_list, BTD09_13_list, BTD09_10_list]
+    # return [BT09_list, BT10_list, BT13_list, BT14_list, BTD14_13_list, BTD09_13_list, BTD09_10_list]
+    return [BT13_list, BTD14_13_list, BTD09_13_list, BTD09_10_list]
 
 def write_channel_sta_to_csv(BT_list, outfile, label_list):
     DF_list = [pd.DataFrame() for i in range(len(BT_list))]
@@ -249,9 +274,9 @@ def write_channel_sta_to_csv(BT_list, outfile, label_list):
 if __name__ == '__main__':
     time_list = []
     start_time, end_time = datetime.strptime(sys.argv[1], '%Y%m%d%H%M'), datetime.strptime(sys.argv[2], '%Y%m%d%H%M')
-    label_list = ['BT09','BT10','BT13','BT14','BTD14_13','BTD09_13','BTD09_10']
-    outfile_m3 = r'/data/PRODUCT/light_channel_sta/{d_time:%Y}/{d_time:%Y%m%d}/{d_time:%Y%m%d%H%M}_{label}.m3'
-    outfile_csv = r'/data/PRODUCT/light_channel_sta/{label}.csv'
+    label_list = ['BT13','BTD14_13','BTD09_13','BTD09_10']
+    outfile_m3 = r'/data/PRODUCT/rain_channel_sta/20/{d_time:%Y}/{d_time:%Y%m%d}/{d_time:%Y%m%d%H%M}_{label}.m3'
+    outfile_csv = r'/data/PRODUCT/rain_channel_sta/20/{label}.csv'
     while start_time <= end_time:
         time_list.append(start_time)
         start_time += timedelta(minutes=10)

@@ -55,7 +55,7 @@ def histogram2d_1(x_data, y_data, x_name, y_name, pic_name):
     BTD13
     BTD09_13
     """
-    heatmap_array, xedges, yedges = np.histogram2d(x_data, y_data, bins=200)
+    heatmap_array, xedges, yedges = np.histogram2d(x_data, y_data, bins=50)
     # threshold, heatmap_Bin = cv2.threshold(heatmap_array.astype(np.uint8), 0, np.max(heatmap_array), cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
     fig = plt.figure(figsize=(12, 12), dpi=120)
@@ -70,16 +70,16 @@ def histogram2d_1(x_data, y_data, x_name, y_name, pic_name):
     plt.xlim(xmax=260, xmin=180)
     plt.ylim(ymax=10, ymin=-60)
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-    levels = [0, 20, 40, 60, 80, 100, 150, 200, 250, 300, 500, 1000]
+    levels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     cmap, norm = cm_collected.get_cmap('ncl/CBR_wet', extend='max', levels=levels)
     heatmap_array = cv2.blur(heatmap_array.T, (3, 3))
     heatmap = plt.imshow(heatmap_array, extent=extent, origin='lower', cmap=cmap, norm=norm)
     l, b, w, h = ax.get_position().bounds
+    # cax = fig.add_axes([l, b - h * 0.06 - 0.05, w, h * 0.02])
     cax = fig.add_axes([l + 1.02 * w, b, w * 0.02, h])
     cbar = plt.colorbar(heatmap, cax=cax, ticks=levels, label=levels, orientation='vertical', extend='max')
     cbar.set_label('点数', fontdict={'family': 'simsun'})
     cbar.ax.tick_params(labelsize=16)
-
     plt.savefig(fname='BTD09_13.png', bbox_inches='tight')
     print('绘图成功：BTD09_13.png')
 
@@ -259,11 +259,14 @@ def histogram2d_6(x_data, y_data, x_name, y_name, pic_name):
     print('绘图成功：BTD09_10_14_13.png')
 
 if __name__=='__main__':
-    filepath = r'/data/BTD1.xlsx'
-    data_df = pd.read_excel(filepath, sheet_name='Sheet2', usecols=['BT13', 'BTD09_13', 'BTD09_10', 'BTD14_13'])
-    histogram2d_1(data_df.BT13, data_df.BTD09_13, 'BT13(K)', 'BTD09_13(℃)', '6月份闪电_风云4B卫星通道值分布')
-    histogram2d_2(data_df.BT13, data_df.BTD09_10, 'BT13(K)', 'BTD09_10(℃)', '6月份闪电_风云4B卫星通道值分布')
-    histogram2d_3(data_df.BT13, data_df.BTD14_13, 'BT13(K)', 'BTD14_13(℃)', '6月份闪电_风云4B卫星通道值分布')
-    histogram2d_4(data_df.BTD09_13, data_df.BTD14_13, 'BTD09_13(℃)', 'BTD14_13(℃)', '6月份闪电_风云4B卫星通道值分布')
-    histogram2d_5(data_df.BTD09_13, data_df.BTD09_10, 'BTD09_13(℃)', 'BTD09_10(℃)', '6月份闪电_风云4B卫星通道值分布')
-    histogram2d_6(data_df.BTD09_10, data_df.BTD14_13, 'BTD09_10(℃)', 'BTD14_13(℃)', '6月份闪电_风云4B卫星通道值分布')
+    filepath_hail0 = r'/data/PRODUCT/hail_channel_sta/0/merge/merge_hail0.csv'
+    filepath_hail1 = r'/data/PRODUCT/hail_channel_sta/1/merge/merge_hail1.csv'
+    hail_df = pd.read_csv(filepath_hail0)
+    hail_df = hail_df.dropna(axis=0, how='any')
+    title_name = '8月份冰雹-卫星通道值分布'
+    histogram2d_1(hail_df.BT13, hail_df.BTD09_13, 'BT13(K)', 'BTD09_13(℃)', title_name)
+    histogram2d_2(hail_df.BT13, hail_df.BTD09_10, 'BT13(K)', 'BTD09_10(℃)', title_name)
+    histogram2d_3(hail_df.BT13, hail_df.BTD14_13, 'BT13(K)', 'BTD14_13(℃)', title_name)
+    histogram2d_4(hail_df.BTD09_13, hail_df.BTD14_13, 'BTD09_13(℃)', 'BTD14_13(℃)', title_name)
+    histogram2d_5(hail_df.BTD09_13, hail_df.BTD09_10, 'BTD09_13(℃)', 'BTD09_10(℃)', title_name)
+    histogram2d_6(hail_df.BTD09_10, hail_df.BTD14_13, 'BTD09_10(℃)', 'BTD14_13(℃)', title_name)

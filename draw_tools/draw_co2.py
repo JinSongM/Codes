@@ -4,7 +4,7 @@
 # @Email : mjs1263153117@163.com
 # @File : cartopy_plot.py
 # @Software: PyCharm
-
+import glob
 import os.path
 import sys
 import numpy as np
@@ -22,7 +22,7 @@ from matplotlib import colors
 from pathlib import Path
 plt.rcParams.update({
     'font.sans-serif': 'Times New Roman',
-    'font.size': 14
+    'font.size': 18
     })
 plt.rcParams['axes.unicode_minus']=False
 
@@ -45,6 +45,8 @@ class argparseConfig:
         self.colors_wind = ['#FFFFFF', '#E8F49E', '#FFED00', '#EDA549', '#EF073D', '#6171F6', '#B5C9FF']
         self.levels_scatter = [10, 20, 30, 40, 50, 60, 70]
         self.colors_scatter = ['#E8F49E', '#01A0F6', '#E8F49E', '#FFED00', '#EDA549', '#EF073D', '#6171F6', '#B5C9FF']
+        import metdig.graphics.cmap.cm as cm_collected
+        self.cmap, self.norm = cm_collected.get_cmap('ncl/WhiteBlueGreenYellowRed', extend='both', levels=np.arange(350, 432, 2))
 
         self.cmap_radar = colors.ListedColormap(self.colors_radar)
         self.norm_radar = colors.BoundaryNorm(self.levels_radar, self.cmap_radar.N - 1)
@@ -235,23 +237,29 @@ class draw_spatialMap(argparseConfig):
             [type]: [绘图对象]
         """
         try:
-            xr_data = meb.read_griddata_from_micaps4(self.infile)
+            import netCDF4 as nc
+            xr_data = nc.Dataset(self.infile, 'r')
+            LON = xr_data['Data']["geolocation"]['longitude'][()]
+            LAT = xr_data['Data']["geolocation"]['latitude'][()]
+            xr_data_array = xr_data['Data']['latticeInformation']['XCO2Average'][()]
+            xr_data_array = np.ma.masked_where(xr_data_array < -1000, xr_data_array)
+            reportTime = os.path.basename(self.infile)[9:15]
 
             fig = plt.figure(figsize=(16, 9), dpi=120)
             ax = plt.axes(projection=ccrs.PlateCarree())
-            plt.title(self.title_name, loc='left', fontsize=20, fontdict={'family': 'simhei'})
-            LAT = xr_data.lat.to_numpy()
-            LON = xr_data.lon.to_numpy()
-            xr_data_array = np.squeeze(xr_data.data)
-            xr_data_array[xr_data_array < min(self.levels_radar)] = np.NAN
+            plt.title(self.title_name, loc='left', fontsize=22, fontdict={'family': 'simhei'})
 
+            outpath = self.outfile.format(rp_t=datetime.strptime(reportTime, '%Y%m'))
             fileName = os.path.basename(self.infile) # 读取文件名称
-            draw_tools_obj = draw_tools(self.box, ax, fileName, self.outfile)
+            draw_tools_obj = draw_tools(self.box, ax, fileName, outpath)
             draw_tools_obj.add_ticks() # 添加并设置经纬度坐标轴
-            draw_tools_obj.add_annotate_fst() # 添加实况/预报描述信息
 
-            cs = plt.pcolormesh(LON, LAT, xr_data_array, transform=ccrs.PlateCarree(), cmap=self.cmap_radar, norm=self.norm_radar)
-            plt.colorbar(cs, ax=ax, aspect=50, shrink=0.6, pad=0.08, location='bottom', label=self.colorbar_name, extend='max')
+            forcast_info = '{0:%Y}年{0:%m}月平均值'.format(datetime.strptime(reportTime, '%Y%m'))
+            ax.text(0.01, 0.985, forcast_info, transform=ax.transAxes, size=14, va='top',
+                         fontdict={'family': 'simhei'}, ha='left', bbox=dict(facecolor='#FFFFFFCC', edgecolor='black', pad=3.0), zorder=20)
+
+            cs = plt.pcolormesh(LON, LAT, xr_data_array, transform=ccrs.PlateCarree(), cmap=self.cmap, norm=self.norm, alpha=0.8)
+            plt.colorbar(cs, ax=ax, aspect=60, shrink=0.6, pad=0.08, location='bottom', label=self.colorbar_name, extend='both')
             # draw_tools_obj.add_south_china_sea() # 添加南海小图
             draw_tools_obj.add_shpfiles() # 添加省市国界
             draw_tools_obj.save_fig() # 保存绘图结果
@@ -329,20 +337,14 @@ if __name__ == '__main__':
     infile = r"D:\data\cpvs\DataBase\MOD\CMA_GFS\radar\{rp_t:%Y}\{rp_t:%Y%m%d%H}\{rp_t:%Y%m%d%H}.{cst:03d}"
     infile_u = r"D:\data\cpvs\DataBase\MOD\CMA_GFS\u10\{rp_t:%Y}\{rp_t:%Y%m%d%H}\{rp_t:%Y%m%d%H}.{cst:03d}"
     infile_v = r"D:\data\cpvs\DataBase\MOD\CMA_GFS\v10\{rp_t:%Y}\{rp_t:%Y%m%d%H}\{rp_t:%Y%m%d%H}.{cst:03d}"
-    outfile = r"D:\data\datasource\sc\result\{rp_t:%Y%m%d}\{rp_t:%Y%m%d%H}.{cst:03d}.png"
+    outfile = r"D:\data\cpvs\DataBase\MOD\CMA_MESO\co2\draw_china\{rp_t:%Y%m}.average.png"
     box = [70, 140, 10, 60]
     stime = datetime.strptime(sys.argv[1].ljust(10, '0'), '%Y%m%d%H')
     etime = datetime.strptime(sys.argv[2].ljust(10, '0'), '%Y%m%d%H')
     cst = int(sys.argv[3])
     begin_t = stime
-    while begin_t <= etime:
-
-        infile_path = infile.format(rp_t=begin_t, cst=cst)
-        # infile_path_u = infile_u.format(rp_t=begin_t, cst=cst)
-        # infile_path_v = infile_v.format(rp_t=begin_t, cst=cst)
-        outfile_path = outfile.format(rp_t=begin_t, cst=cst)
-        # wind_map = draw_barbsMap(infile_path_u, infile_path_v, outfile_path, box, '10 m 风', 'Wind Speed (m/s)')
-        # wind_map.barbsMap()
-        radar_map = draw_spatialMap(infile_path,  outfile_path, box, '雷达组合反射率', '(dbz)')
+    import glob
+    filelist = glob.glob(r'D:\data\cpvs\DataBase\MOD\CMA_MESO\co2\CO2\*.h5')
+    for file in filelist:
+        radar_map = draw_spatialMap(file,  outfile, box, '二氧化碳', 'ppmv')
         radar_map.pcolormeshMap()
-        begin_t += timedelta(hours=1)

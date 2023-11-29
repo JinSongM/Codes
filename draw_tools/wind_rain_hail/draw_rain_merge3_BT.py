@@ -56,7 +56,7 @@ def histogram2d_1(x_data, y_data, x_name, y_name, pic_name):
     BTD09_13
     """
     heatmap_array, xedges, yedges = np.histogram2d(x_data, y_data, bins=200)
-    # threshold, heatmap_Bin = cv2.threshold(heatmap_array.astype(np.uint8), 0, np.max(heatmap_array), cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    yedges = yedges * 2
 
     fig = plt.figure(figsize=(12, 12), dpi=120)
     ax = plt.axes()
@@ -67,19 +67,20 @@ def histogram2d_1(x_data, y_data, x_name, y_name, pic_name):
     # 设置Y轴标签
     plt.ylabel('{}'.format(y_name))
 
-    plt.xlim(xmax=260, xmin=180)
-    plt.ylim(ymax=10, ymin=-60)
+    plt.xlim(xmax=300, xmin=180)
+    plt.ylim(ymax=0, ymin=-120)
+    plt.yticks([-120, -100, -80, -60, -40, -20, 0], [-60, -50, -40, -30, -20, -10, 0])
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-    levels = [0, 20, 40, 60, 80, 100, 150, 200, 250, 300, 500, 1000]
+    levels = np.arange(0, np.max(heatmap_array) - 5, 1)
     cmap, norm = cm_collected.get_cmap('ncl/CBR_wet', extend='max', levels=levels)
     heatmap_array = cv2.blur(heatmap_array.T, (3, 3))
     heatmap = plt.imshow(heatmap_array, extent=extent, origin='lower', cmap=cmap, norm=norm)
     l, b, w, h = ax.get_position().bounds
+    # cax = fig.add_axes([l, b - h * 0.06 - 0.05, w, h * 0.02])
     cax = fig.add_axes([l + 1.02 * w, b, w * 0.02, h])
     cbar = plt.colorbar(heatmap, cax=cax, ticks=levels, label=levels, orientation='vertical', extend='max')
     cbar.set_label('点数', fontdict={'family': 'simsun'})
     cbar.ax.tick_params(labelsize=16)
-
     plt.savefig(fname='BTD09_13.png', bbox_inches='tight')
     print('绘图成功：BTD09_13.png')
 
@@ -89,7 +90,7 @@ def histogram2d_2(x_data, y_data, x_name, y_name, pic_name):
     BTD09_10
     """
     heatmap_array, xedges, yedges = np.histogram2d(x_data, y_data, bins=200)
-    yedges = yedges * 5
+    yedges = yedges * 10
     fig = plt.figure(figsize=(12, 12), dpi=120)
     ax = plt.axes()
     # 设置标题
@@ -99,13 +100,13 @@ def histogram2d_2(x_data, y_data, x_name, y_name, pic_name):
     # 设置Y轴标签
     plt.ylabel('{}'.format(y_name))
 
-    plt.xlim(xmax=260, xmin=180)
-    plt.ylim(ymax=15, ymin=-60)
-    plt.yticks([-60, -45, -30, -15, 0, 15], [-12, -9, -6, -3, 0, 3])
+    plt.xlim(xmax=300, xmin=180)
+    plt.ylim(ymax=0, ymin=-120)
+    plt.yticks([-120, -100, -80, -60, -40, -20, 0], [-12, -10, -8, -6, -4, -2, 0])
     # # 设置坐标轴刻度
 
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-    levels = [0, 20, 40, 60, 80, 100, 150, 200, 250, 300, 500, 1000]
+    levels = np.arange(0, np.max(heatmap_array) - 5, 1)
     cmap, norm = cm_collected.get_cmap('ncl/CBR_wet', extend='max', levels=levels)
     heatmap_array = cv2.blur(heatmap_array.T, (3, 3))
     heatmap = plt.imshow(heatmap_array, extent=extent, origin='lower', cmap=cmap, norm=norm)
@@ -125,7 +126,7 @@ def histogram2d_3(x_data, y_data, x_name, y_name, pic_name):
     BTD09_10
     """
     heatmap_array, xedges, yedges = np.histogram2d(x_data, y_data, bins=200)
-    yedges = yedges * 5
+    yedges = yedges * 10
     fig = plt.figure(figsize=(12, 12), dpi=120)
     ax = plt.axes()
     # 设置标题
@@ -135,13 +136,13 @@ def histogram2d_3(x_data, y_data, x_name, y_name, pic_name):
     # 设置Y轴标签
     plt.ylabel('{}'.format(y_name))
 
-    plt.xlim(xmax=260, xmin=180)
-    plt.ylim(ymax=15, ymin=-60)
-    plt.yticks([-60, -45, -30, -15, 0, 15], [-12, -9, -6, -3, 0, 3])
+    plt.xlim(xmax=300, xmin=180)
+    plt.ylim(ymax=0, ymin=-120)
+    plt.yticks([-120, -100, -80, -60, -40, -20, 0], [-12, -10, -8, -6, -4, -2, 0])
     # # 设置坐标轴刻度
 
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-    levels = [0, 20, 40, 60, 80, 100, 150, 200, 250, 300, 500, 1000]
+    levels = np.arange(0, np.max(heatmap_array) - 7, 1)
     cmap, norm = cm_collected.get_cmap('ncl/CBR_wet', extend='max', levels=levels)
     heatmap_array = cv2.blur(heatmap_array.T, (3, 3))
     heatmap = plt.imshow(heatmap_array, extent=extent, origin='lower', cmap=cmap, norm=norm)
@@ -170,13 +171,13 @@ def histogram2d_4(x_data, y_data, x_name, y_name, pic_name):
     # 设置Y轴标签
     plt.ylabel('{}'.format(y_name))
 
-    plt.xlim(xmax=10, xmin=-60)
-    plt.ylim(ymax=0, ymin=-45)
-    plt.yticks([-45, -30, -15, 0], [-9, -6, -3, 0])
+    plt.xlim(xmax=0, xmin=-60)
+    plt.ylim(ymax=0, ymin=-60)
+    plt.yticks([-60, -50, -40, -30, -20, -10, 0], [-12, -10, -8, -6, -4, -2, 0])
     # # 设置坐标轴刻度
 
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-    levels = [0, 20, 40, 60, 80, 100, 150, 200, 250, 300, 500, 1000]
+    levels = np.arange(0, np.max(heatmap_array) - 11, 1)
     cmap, norm = cm_collected.get_cmap('ncl/CBR_wet', extend='max', levels=levels)
     heatmap_array = cv2.blur(heatmap_array.T, (3, 3))
     heatmap = plt.imshow(heatmap_array, extent=extent, origin='lower', cmap=cmap, norm=norm)
@@ -205,14 +206,14 @@ def histogram2d_5(x_data, y_data, x_name, y_name, pic_name):
     # 设置Y轴标签
     plt.ylabel('{}'.format(y_name))
 
-    plt.xlim(xmax=10, xmin=-60)
-    plt.ylim(ymax=15, ymin=-60)
-    plt.yticks([-60, -45, -30, -15, 0, 15], [-12, -9, -6, -3, 0, 3])
+    plt.xlim(xmax=0, xmin=-60)
+    plt.ylim(ymax=0, ymin=-60)
+    plt.yticks([-60, -50, -40, -30, -20, -10, 0], [-12, -10, -8, -6, -4, -2, 0])
     # # 设置坐标轴刻度
 
+
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-    # levels = [0,20,40,60,80,100,140,180,220,260,300]
-    levels = [0, 20, 40, 60, 80, 100, 150, 200, 250, 300, 500, 1000]
+    levels = np.arange(0, np.max(heatmap_array) - 11, 1)
     cmap, norm = cm_collected.get_cmap('ncl/CBR_wet', extend='max', levels=levels)
     heatmap_array = cv2.blur(heatmap_array.T, (3, 3))
     heatmap = plt.imshow(heatmap_array, extent=extent, origin='lower', cmap=cmap, norm=norm)
@@ -240,12 +241,12 @@ def histogram2d_6(x_data, y_data, x_name, y_name, pic_name):
     # 设置Y轴标签
     plt.ylabel('{}'.format(y_name))
 
-    plt.xlim(xmax=2, xmin=-12)
-    plt.ylim(ymax=0, ymin=-10)
+    plt.xlim(xmax=0, xmin=-12)
+    plt.ylim(ymax=0, ymin=-12)
     # 设置坐标轴刻度
 
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-    levels = [0, 20, 40, 60, 80, 100, 150, 200, 250, 300, 500, 1000]
+    levels = np.arange(0, np.max(heatmap_array) - 8, 1)
     cmap, norm = cm_collected.get_cmap('ncl/CBR_wet', extend='max', levels=levels)
     heatmap_array = cv2.blur(heatmap_array.T, (3, 3))
     heatmap = plt.imshow(heatmap_array, extent=extent, origin='lower', cmap=cmap, norm=norm)
@@ -258,12 +259,31 @@ def histogram2d_6(x_data, y_data, x_name, y_name, pic_name):
     plt.savefig(fname='BTD09_10_14_13.png', bbox_inches='tight')
     print('绘图成功：BTD09_10_14_13.png')
 
+def mergeCSV(csvpath, outfile):
+    import glob
+    csvfiles = glob.glob(os.path.join(csvpath, '*.csv'))
+    if len(csvfiles) > 0:
+        df0 = pd.read_csv(csvfiles[0])
+        for i in range(1, len(csvfiles)):
+            df_tmp = pd.read_csv(csvfiles[i])
+            # pd.merge(df0, df_tmp, on=['lon', 'lat'], how='outer')
+            df0 = pd.merge(df0, df_tmp)
+        if not os.path.exists(os.path.dirname(outfile)):
+            os.makedirs(os.path.dirname(outfile))
+        df0.to_csv(outfile)
+        print('成功输出至：{}'.format(outfile))
+    else:
+        print('路径下没有CSV文件')
+
 if __name__=='__main__':
-    filepath = r'/data/BTD1.xlsx'
-    data_df = pd.read_excel(filepath, sheet_name='Sheet2', usecols=['BT13', 'BTD09_13', 'BTD09_10', 'BTD14_13'])
-    histogram2d_1(data_df.BT13, data_df.BTD09_13, 'BT13(K)', 'BTD09_13(℃)', '6月份闪电_风云4B卫星通道值分布')
-    histogram2d_2(data_df.BT13, data_df.BTD09_10, 'BT13(K)', 'BTD09_10(℃)', '6月份闪电_风云4B卫星通道值分布')
-    histogram2d_3(data_df.BT13, data_df.BTD14_13, 'BT13(K)', 'BTD14_13(℃)', '6月份闪电_风云4B卫星通道值分布')
-    histogram2d_4(data_df.BTD09_13, data_df.BTD14_13, 'BTD09_13(℃)', 'BTD14_13(℃)', '6月份闪电_风云4B卫星通道值分布')
-    histogram2d_5(data_df.BTD09_13, data_df.BTD09_10, 'BTD09_13(℃)', 'BTD09_10(℃)', '6月份闪电_风云4B卫星通道值分布')
-    histogram2d_6(data_df.BTD09_10, data_df.BTD14_13, 'BTD09_10(℃)', 'BTD14_13(℃)', '6月份闪电_风云4B卫星通道值分布')
+
+    filepath_rain = r'/data/PRODUCT/rain_channel_sta/merge_rain6-8.csv'
+    rain_df = pd.read_csv(filepath_rain)
+    rain_df = rain_df.dropna(axis=0, how='any')
+    title = '6-8月份强降水_风云4B卫星通道值分布'
+    histogram2d_1(rain_df.BT13, rain_df.BTD09_13, 'BT13(K)', 'BTD09_13(℃)', title)
+    histogram2d_2(rain_df.BT13, rain_df.BTD09_10, 'BT13(K)', 'BTD09_10(℃)', title)
+    histogram2d_3(rain_df.BT13, rain_df.BTD14_13, 'BT13(K)', 'BTD14_13(℃)', title)
+    histogram2d_4(rain_df.BTD09_13, rain_df.BTD14_13, 'BTD09_13(℃)', 'BTD14_13(℃)', title)
+    histogram2d_5(rain_df.BTD09_13, rain_df.BTD09_10, 'BTD09_13(℃)', 'BTD09_10(℃)', title)
+    histogram2d_6(rain_df.BTD09_10, rain_df.BTD14_13, 'BTD09_10(℃)', 'BTD14_13(℃)', title)

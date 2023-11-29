@@ -2,7 +2,7 @@
 # @Time : 2023/8/28 10:26
 # @Author : 马劲松
 # @Email : mjs1263153117@163.com
-# @File : light_BT.py
+# @File : norain_BT.py
 # @Software: PyCharm
 import os, glob
 import sys, cv2
@@ -36,30 +36,70 @@ class fy_4b_agri_l1:
             line = np.rint(line).astype(np.uint16) - line_begin
             column = np.rint(column).astype(np.uint16)
 
+            channel_temp_04 = da['Data']["NOMChannel04"][()][line, column]
+            channel_temp_05 = da['Data']["NOMChannel05"][()][line, column]
+            channel_temp_06 = da['Data']["NOMChannel06"][()][line, column]
+            channel_temp_07 = da['Data']["NOMChannel07"][()][line, column]
+            channel_temp_08 = da['Data']["NOMChannel08"][()][line, column]
             channel_temp_09 = da['Data']["NOMChannel09"][()][line, column]
             channel_temp_10 = da['Data']["NOMChannel10"][()][line, column]
+            channel_temp_11 = da['Data']["NOMChannel11"][()][line, column]
+            channel_temp_12 = da['Data']["NOMChannel12"][()][line, column]
             channel_temp_13 = da['Data']["NOMChannel13"][()][line, column]
             channel_temp_14 = da['Data']["NOMChannel14"][()][line, column]
+            channel_temp_15 = da['Data']["NOMChannel15"][()][line, column]
 
+            channel_temp_04[channel_temp_04 >= 65534] = 4096
+            channel_temp_05[channel_temp_05 >= 65534] = 4096
+            channel_temp_06[channel_temp_06 >= 65534] = 4096
+            channel_temp_07[channel_temp_07 >= 65534] = 4096
+            channel_temp_08[channel_temp_08 >= 65534] = 4096
             channel_temp_09[channel_temp_09 >= 65534] = 4096
             channel_temp_10[channel_temp_10 >= 65534] = 4096
+            channel_temp_11[channel_temp_11 >= 65534] = 4096
+            channel_temp_12[channel_temp_12 >= 65534] = 4096
             channel_temp_13[channel_temp_13 >= 65534] = 4096
             channel_temp_14[channel_temp_14 >= 65534] = 4096
+            channel_temp_15[channel_temp_15 >= 65534] = 4096
 
-            scalae_value_09 = da['Calibration']["CALChannel09"][()].astype(np.float32)  # 10.7um
-            scalae_value_10 = da['Calibration']["CALChannel10"][()].astype(np.float32)  # 12.5um
-            scalae_value_13 = da['Calibration']["CALChannel13"][()].astype(np.float32)  # 13.3um
-            scalae_value_14 = da['Calibration']["CALChannel14"][()].astype(np.float32)  # 10.7um
+            scalae_value_04 = da['Calibration']["CALChannel04"][()].astype(np.float32)
+            scalae_value_05 = da['Calibration']["CALChannel05"][()].astype(np.float32)
+            scalae_value_06 = da['Calibration']["CALChannel06"][()].astype(np.float32)
+            scalae_value_07 = da['Calibration']["CALChannel07"][()].astype(np.float32)
+            scalae_value_08 = da['Calibration']["CALChannel08"][()].astype(np.float32)
+            scalae_value_09 = da['Calibration']["CALChannel09"][()].astype(np.float32)
+            scalae_value_10 = da['Calibration']["CALChannel10"][()].astype(np.float32)
+            scalae_value_11 = da['Calibration']["CALChannel11"][()].astype(np.float32)
+            scalae_value_12 = da['Calibration']["CALChannel12"][()].astype(np.float32)
+            scalae_value_13 = da['Calibration']["CALChannel13"][()].astype(np.float32)
+            scalae_value_14 = da['Calibration']["CALChannel14"][()].astype(np.float32)
+            scalae_value_15 = da['Calibration']["CALChannel15"][()].astype(np.float32)
 
+            scalae_value_04 = np.append(scalae_value_04, np.nan)
+            scalae_value_05 = np.append(scalae_value_05, np.nan)
+            scalae_value_06 = np.append(scalae_value_06, np.nan)
+            scalae_value_07 = np.append(scalae_value_07, np.nan)
+            scalae_value_08 = np.append(scalae_value_08, np.nan)
             scalae_value_09 = np.append(scalae_value_09, np.nan)
             scalae_value_10 = np.append(scalae_value_10, np.nan)
+            scalae_value_11 = np.append(scalae_value_11, np.nan)
+            scalae_value_12 = np.append(scalae_value_12, np.nan)
             scalae_value_13 = np.append(scalae_value_13, np.nan)
             scalae_value_14 = np.append(scalae_value_14, np.nan)
+            scalae_value_15 = np.append(scalae_value_15, np.nan)
 
-            self.tb_09 = scalae_value_09[channel_temp_09]
-            self.tb_10 = scalae_value_10[channel_temp_10]
-            self.tb_13 = scalae_value_13[channel_temp_13]
-            self.tb_14 = scalae_value_14[channel_temp_14]
+            self.BT04 = scalae_value_04[channel_temp_04]
+            self.BT05 = scalae_value_05[channel_temp_05]
+            self.BT06 = scalae_value_06[channel_temp_06]
+            self.BT07 = scalae_value_07[channel_temp_07]
+            self.BT08 = scalae_value_08[channel_temp_08]
+            self.BT09 = scalae_value_09[channel_temp_09]
+            self.BT10 = scalae_value_10[channel_temp_10]
+            self.BT11 = scalae_value_11[channel_temp_11]
+            self.BT12 = scalae_value_12[channel_temp_12]
+            self.BT13 = scalae_value_13[channel_temp_13]
+            self.BT14 = scalae_value_14[channel_temp_14]
+            self.BT15 = scalae_value_15[channel_temp_15]
 
 def latlon2linecolumn(lat, lon, resolution_str):
     """
@@ -171,89 +211,79 @@ def get_fy4_file_channel(d_date: datetime):
         fy4b_obj.load_fy4b_data(fy4_file)
         lon, lat = [west_lon, east_lon, M4000_resolution], [south_lat, north_lat, M4000_resolution]
         gtime = d_date.strftime('%Y-%m-%d-%H:%M')
-        fy4b_channel = {
-            'BT09': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_09[::-1], np.ones((5, 5))), 'BT09', gtime),
-            'BT10': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_10[::-1], np.ones((5, 5))), 'BT10', gtime),
-            'BT13': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_13[::-1], np.ones((5, 5))), 'BT13', gtime),
-            'BT14': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_14[::-1], np.ones((5, 5))), 'BT14', gtime),
-            'BTD14_13': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_14-fy4b_obj.tb_13)[::-1], np.ones((5, 5))), 'BTD14_13', gtime),
-            'BTD09_13': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_09-fy4b_obj.tb_13)[::-1], np.ones((5, 5))), 'BTD09_13', gtime),
-            'BTD09_10': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_09-fy4b_obj.tb_10)[::-1], np.ones((5, 5))), 'BTD09_10', gtime),
-        }
+        fy4b_channel = {}
+        for cname in label_list:
+            fy4b_channel[cname] = creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.__getattribute__(cname)[::-1], np.ones((5, 5))), cname, gtime)
         fy4b_obj_dict[time_temp.strftime('%Y%m%d%H%M')] = fy4b_channel
         return fy4b_obj_dict
-    except:
+    except Exception as e:
+        print(e)
         return None
 
-def get_TQ_DATA_file(d_date: datetime):
-    # 读取闪电数据
-    TQ_DATA_dict = {}
+def get_rain_file(d_date: datetime):
+    # 读取降水数据
+    rain_dict = {}
     time_temp = d_date
     try:
-        filename = '{d_time:%Y}/{d_time:%Y%m%d}/{d_time:%Y_%m_%d_%H_%M}.csv'
-        path = r"/data/DLJS/TQ_DATA/ADTD_auto"
+        filename = '{d_time:%Y%m%d}/{d_time:%Y%m%d%H}.000'
+        path = r"/data/WX/STA/PRE"
         filepath = os.path.join(path, filename.format(d_time=d_date))
-        print('读取闪电数据: ' + time_temp.strftime('%Y%m%d%H%M'))
-        csv_data = pd.read_csv(filepath)
-        light_local = csv_data[['Lon', 'Lat']]
-        light_sta = creat_M3_grd(light_local)
-        TQ_DATA_dict[time_temp.strftime('%Y%m%d%H%M')] = light_sta
-        return TQ_DATA_dict
+        rain_sta = meb.read_stadata_from_micaps3(filepath)
+        print('读取降水数据: ' + time_temp.strftime('%Y%m%d%H'))
+        rain_sta_filter = rain_sta[(rain_sta.data0 < 20.0) & (rain_sta.data0 >= 0.0)]
+        rain_sta_filter = rain_sta_filter.sample(n=np.min([100, len(rain_sta_filter)]))
+        if rain_sta_filter.empty:
+            return None
+        rain_dict[time_temp.strftime('%Y%m%d%H%M')] = rain_sta_filter
+        return rain_dict
     except:
         return None
 
-def get_channel_sta(time_list, outfile):
-    BT09_list, BT10_list, BT13_list, BT14_list, BTD14_13_list, BTD09_13_list, BTD09_10_list = [], [], [], [], [], [], []
+def get_channel_sta(time_list):
+    dict_BT_rain0 = {key:[] for key in label_list}
+
     for time_obs in time_list:
         try:
-            TQ_DATA_dict = get_TQ_DATA_file(time_obs)
-            if TQ_DATA_dict is None:
+            rain_dict = get_rain_file(time_obs)
+            if rain_dict is None:
+                print('--' * 40)
                 continue
             fy4b_channels_dict = get_fy4_file_channel(time_obs)
             if fy4b_channels_dict is None:
+                print('--' * 40)
                 continue
-            sta = TQ_DATA_dict.get(time_obs.strftime('%Y%m%d%H%M'))
+            sta = rain_dict.get(time_obs.strftime('%Y%m%d%H%M'))
             grd_channels = fy4b_channels_dict.get(time_obs.strftime('%Y%m%d%H%M'))
             for key, value in grd_channels.items():
-                sta_channel = meb.interp_gs_nearest(value, sta)
-                meb.write_stadata_to_micaps3(sta_channel, save_path=outfile.format(d_time=time_obs, label=key), creat_dir=True, show=True)
-                if key == 'BT09':
-                    BT09_list.append(sta_channel[['time', 'lon', 'lat', key]])
-                elif key == 'BT10':
-                    BT10_list.append(sta_channel[['time', 'lon', 'lat', key]])
-                elif key == 'BT13':
-                    BT13_list.append(sta_channel[['time', 'lon', 'lat', key]])
-                elif key == 'BT14':
-                    BT14_list.append(sta_channel[['time', 'lon', 'lat', key]])
-                elif key == 'BTD14_13':
-                    BTD14_13_list.append(sta_channel[['time', 'lon', 'lat', key]])
-                elif key == 'BTD09_13':
-                    BTD09_13_list.append(sta_channel[['time', 'lon', 'lat', key]])
-                elif key == 'BTD09_10':
-                    BTD09_10_list.append(sta_channel[['time', 'lon', 'lat', key]])
+                if not sta.empty:
+                    sta_channel = meb.interp_gs_nearest(value, sta)
+                    dict_BT_rain0.get(key).append(sta_channel)
             print('##' * 40)
         except Exception as e:
             print(e)
-    return [BT09_list, BT10_list, BT13_list, BT14_list, BTD14_13_list, BTD09_13_list, BTD09_10_list]
+    BT_list_rain0 = list(dict_BT_rain0.values())
+    print('保存特征值统计文件')
+    write_channel_sta_to_csv(BT_list_rain0, 0)
 
-def write_channel_sta_to_csv(BT_list, outfile, label_list):
+
+def write_channel_sta_to_csv(BT_list, lev):
     DF_list = [pd.DataFrame() for i in range(len(BT_list))]
     for i in range(len(BT_list)):
         for j in range(len(BT_list[i])):
             DF_list[i] = pd.concat([DF_list[i], BT_list[i][j]])
-    for i in range(len(DF_list)):
-        outpath = outfile.format(label=label_list[i])
-        DF_list[i].to_csv(outpath, index = False)
-        print('成功输出至' + outpath)
+    mergeCSV = pd.concat(DF_list, axis=1)
+    outpath = outfile_csv.format(lev=lev)
+    if not os.path.exists(os.path.dirname(outpath)):
+        os.makedirs(os.path.dirname(outpath))
+    mergeCSV.to_csv(outpath, index = False)
+    print('成功输出至' + outpath)
 
 if __name__ == '__main__':
     time_list = []
-    start_time, end_time = datetime.strptime(sys.argv[1], '%Y%m%d%H%M'), datetime.strptime(sys.argv[2], '%Y%m%d%H%M')
-    label_list = ['BT09','BT10','BT13','BT14','BTD14_13','BTD09_13','BTD09_10']
-    outfile_m3 = r'/data/PRODUCT/light_channel_sta/{d_time:%Y}/{d_time:%Y%m%d}/{d_time:%Y%m%d%H%M}_{label}.m3'
-    outfile_csv = r'/data/PRODUCT/light_channel_sta/{label}.csv'
+    start_time, end_time = datetime.strptime(sys.argv[1], '%Y%m%d%H'), datetime.strptime(sys.argv[2], '%Y%m%d%H')
+    label_list = ['BT04','BT05','BT06','BT07','BT08','BT09','BT10','BT11','BT12','BT13','BT14','BT15']
+    outfile_csv = r'/data/PRODUCT/tmp/{lev}/merge3/merge_rain{lev}.csv'
     while start_time <= end_time:
         time_list.append(start_time)
-        start_time += timedelta(minutes=10)
-    BT_list = get_channel_sta(time_list, outfile_m3)
-    write_channel_sta_to_csv(BT_list, outfile_csv, label_list)
+        start_time += timedelta(hours=1)
+    get_channel_sta(time_list)

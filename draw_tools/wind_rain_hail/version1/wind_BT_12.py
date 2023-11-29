@@ -2,7 +2,7 @@
 # @Time : 2023/8/28 10:26
 # @Author : 马劲松
 # @Email : mjs1263153117@163.com
-# @File : light_BT.py
+# @File : wind_BT_12.py
 # @Software: PyCharm
 import os, glob
 import sys, cv2
@@ -13,10 +13,13 @@ import meteva.base as meb
 from datetime import datetime, timedelta
 
 south_lat, north_lat, east_lon, west_lon, M4000_resolution = 10, 60, 140, 70, 0.04
+
+
 class fy_4b_agri_l1:
     """
     风云4B基础数据类型
     """
+
     def load_fy4b_data(self, path):
         s_lat, n_lat = float(south_lat), float(north_lat)
         w_lon, e_lon = float(west_lon), float(east_lon)
@@ -60,6 +63,7 @@ class fy_4b_agri_l1:
             self.tb_10 = scalae_value_10[channel_temp_10]
             self.tb_13 = scalae_value_13[channel_temp_13]
             self.tb_14 = scalae_value_14[channel_temp_14]
+
 
 def latlon2linecolumn(lat, lon, resolution_str):
     """
@@ -113,6 +117,7 @@ def latlon2linecolumn(lat, lon, resolution_str):
     line = loff[resolution_str] + y * 2 ** -16 * lfac[resolution_str]
     return line, column
 
+
 def creat_M3_grd(M3_grd):
     """
     构建m3标准格式
@@ -121,9 +126,10 @@ def creat_M3_grd(M3_grd):
     """
     # 构建站点数据标准格式
     M3_grd = M3_grd
-    sta = meb.sta_data(M3_grd, columns=["lon", "lat"])
+    sta = meb.sta_data(M3_grd, columns=["lon", "lat", 'data0'])
     meb.set_stadata_coords(sta, level=0, time=datetime(2023, 1, 1, 8, 0), dtime=0)
     return sta
+
 
 def creat_M4_grd(lon, lat, data_array, name, gtime):
     """
@@ -138,6 +144,7 @@ def creat_M4_grd(lon, lat, data_array, name, gtime):
     grd = meb.grid_data(grid0, data=data)
     meb.set_griddata_coords(grd, name="FY4B", level_list=[0], gtime=[gtime], dtime_list=[1], member_list=[name])
     return grd
+
 
 def get_fy4_file_path(d_date: datetime):
     """
@@ -158,9 +165,10 @@ def get_fy4_file_path(d_date: datetime):
     else:
         return None
 
+
 def get_fy4_file_channel(d_date: datetime):
     # FY4B卫星数据加载
-    fy4b_obj_dict= {}
+    fy4b_obj_dict = {}
     time_temp = d_date
     fy4b_obj = fy_4b_agri_l1()
     try:
@@ -176,14 +184,19 @@ def get_fy4_file_channel(d_date: datetime):
             'BT10': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_10[::-1], np.ones((5, 5))), 'BT10', gtime),
             'BT13': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_13[::-1], np.ones((5, 5))), 'BT13', gtime),
             'BT14': creat_M4_grd(lon, lat, cv2.erode(fy4b_obj.tb_14[::-1], np.ones((5, 5))), 'BT14', gtime),
-            'BTD14_13': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_14-fy4b_obj.tb_13)[::-1], np.ones((5, 5))), 'BTD14_13', gtime),
-            'BTD09_13': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_09-fy4b_obj.tb_13)[::-1], np.ones((5, 5))), 'BTD09_13', gtime),
-            'BTD09_10': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_09-fy4b_obj.tb_10)[::-1], np.ones((5, 5))), 'BTD09_10', gtime),
+            'BTD14_13': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_14 - fy4b_obj.tb_13)[::-1], np.ones((5, 5))),
+                                     'BTD14_13', gtime),
+            'BTD09_13': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_09 - fy4b_obj.tb_13)[::-1], np.ones((5, 5))),
+                                     'BTD09_13', gtime),
+            'BTD09_10': creat_M4_grd(lon, lat, cv2.erode((fy4b_obj.tb_09 - fy4b_obj.tb_10)[::-1], np.ones((5, 5))),
+                                     'BTD09_10', gtime),
         }
         fy4b_obj_dict[time_temp.strftime('%Y%m%d%H%M')] = fy4b_channel
         return fy4b_obj_dict
-    except:
+    except Exception as e:
+        print(e)
         return None
+
 
 def get_TQ_DATA_file(d_date: datetime):
     # 读取闪电数据
@@ -202,21 +215,59 @@ def get_TQ_DATA_file(d_date: datetime):
     except:
         return None
 
+
+def get_wind_file(d_date: datetime):
+    # 读取雷暴大风数据
+    wind_dict = {}
+    time_temp = d_date
+    try:
+        filename = '{d_time:%Y%m%d}/{d_time:%Y%m%d%H%M}.000'
+        path = r"/mnt/server_50/2023sk/wind"
+        filepath = os.path.join(path, filename.format(d_time=d_date))
+        # wind_sta = meb.read_stadata_from_micaps1_2_8(filepath, column=9)
+        lon_list, lat_list, data_list = [], [], []
+        with open(filepath) as windfile:
+            for i in windfile.readlines():
+                recode = i.strip().split()
+                if len(recode) == 10:
+                    lon_list.append(float(recode[1]))
+                    lat_list.append(float(recode[2]))
+                    data_list.append(float(recode[-1]))
+        wind_sta = creat_M3_grd(pd.DataFrame([lon_list, lat_list, data_list], ['lon', 'lat', 'data0']).T)
+
+        print('读取大风数据: ' + time_temp.strftime('%Y%m%d%H%M'))
+        # wind_sta_filter = wind_sta[(wind_sta.data0 >= 10.8) & (wind_sta.data0 < 17.2)]
+        # wind_sta_filter = wind_sta[(wind_sta.data0 >= 17.2) & (wind_sta.data0 < 24.5)]
+        # wind_sta_filter = wind_sta[(wind_sta.data0 >= 24.5) & (wind_sta.data0 < 32.7)]
+        wind_sta_filter = wind_sta[wind_sta.data0 >= 32.7]
+
+        wind_dict[time_temp.strftime('%Y%m%d%H%M')] = wind_sta_filter
+        return wind_dict
+    except:
+        return None
+
+
 def get_channel_sta(time_list, outfile):
     BT09_list, BT10_list, BT13_list, BT14_list, BTD14_13_list, BTD09_13_list, BTD09_10_list = [], [], [], [], [], [], []
     for time_obs in time_list:
         try:
-            TQ_DATA_dict = get_TQ_DATA_file(time_obs)
-            if TQ_DATA_dict is None:
+            wind_dict = get_wind_file(time_obs)
+            if wind_dict is None:
+                print('--' * 40)
                 continue
-            fy4b_channels_dict = get_fy4_file_channel(time_obs)
+            time_utc = time_obs - timedelta(hours=8)
+            fy4b_channels_dict = get_fy4_file_channel(time_utc)
             if fy4b_channels_dict is None:
+                print('--' * 40)
                 continue
-            sta = TQ_DATA_dict.get(time_obs.strftime('%Y%m%d%H%M'))
-            grd_channels = fy4b_channels_dict.get(time_obs.strftime('%Y%m%d%H%M'))
+            sta = wind_dict.get(time_obs.strftime('%Y%m%d%H%M'))
+            if len(sta) < 1:
+                continue
+
+            grd_channels = fy4b_channels_dict.get(time_utc.strftime('%Y%m%d%H%M'))
             for key, value in grd_channels.items():
                 sta_channel = meb.interp_gs_nearest(value, sta)
-                meb.write_stadata_to_micaps3(sta_channel, save_path=outfile.format(d_time=time_obs, label=key), creat_dir=True, show=True)
+                # meb.write_stadata_to_micaps3(sta_channel, save_path=outfile.format(d_time=time_obs, label=key), creat_dir=True, show=True)
                 if key == 'BT09':
                     BT09_list.append(sta_channel[['time', 'lon', 'lat', key]])
                 elif key == 'BT10':
@@ -236,6 +287,7 @@ def get_channel_sta(time_list, outfile):
             print(e)
     return [BT09_list, BT10_list, BT13_list, BT14_list, BTD14_13_list, BTD09_13_list, BTD09_10_list]
 
+
 def write_channel_sta_to_csv(BT_list, outfile, label_list):
     DF_list = [pd.DataFrame() for i in range(len(BT_list))]
     for i in range(len(BT_list)):
@@ -243,15 +295,18 @@ def write_channel_sta_to_csv(BT_list, outfile, label_list):
             DF_list[i] = pd.concat([DF_list[i], BT_list[i][j]])
     for i in range(len(DF_list)):
         outpath = outfile.format(label=label_list[i])
-        DF_list[i].to_csv(outpath, index = False)
+        if not os.path.exists(os.path.dirname(outpath)):
+            os.makedirs(os.path.dirname(outpath))
+        DF_list[i].to_csv(outpath, index=False)
         print('成功输出至' + outpath)
+
 
 if __name__ == '__main__':
     time_list = []
     start_time, end_time = datetime.strptime(sys.argv[1], '%Y%m%d%H%M'), datetime.strptime(sys.argv[2], '%Y%m%d%H%M')
-    label_list = ['BT09','BT10','BT13','BT14','BTD14_13','BTD09_13','BTD09_10']
-    outfile_m3 = r'/data/PRODUCT/light_channel_sta/{d_time:%Y}/{d_time:%Y%m%d}/{d_time:%Y%m%d%H%M}_{label}.m3'
-    outfile_csv = r'/data/PRODUCT/light_channel_sta/{label}.csv'
+    label_list = ['BT09', 'BT10', 'BT13', 'BT14', 'BTD14_13', 'BTD09_13', 'BTD09_10']
+    outfile_m3 = r'/data/PRODUCT/wind_channel_sta/12/{d_time:%Y}/{d_time:%Y%m%d}/{d_time:%Y%m%d%H%M}_{label}.m3'
+    outfile_csv = r'/data/PRODUCT/wind_channel_sta/12/{label}.csv'
     while start_time <= end_time:
         time_list.append(start_time)
         start_time += timedelta(minutes=10)

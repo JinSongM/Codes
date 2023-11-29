@@ -264,6 +264,10 @@ def main_draw():
         model_name = 'ECMWF'
     elif model == 'CMA':
         model_name = 'CMA-GFS'
+    elif model == 'GRAPHCAST':
+        model_name = 'Graphcast'
+    elif model == 'FOURCASTNET':
+        model_name = 'FourCastNet'
     else:
         return
 
